@@ -1,8 +1,8 @@
 import { serve } from '@hono/node-server'
-import { Hono } from 'hono'
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { Scalar } from '@scalar/hono-api-reference'
 import pino from 'pino'
 
-// Define la estructura de un producto
 interface Producto {
   id: number
   nombre: string
@@ -10,30 +10,15 @@ interface Producto {
   stock: number
 }
 
-type DatosProducto = Omit<Producto, 'id'>
-
-const app = new Hono()
 const puerto = 3000
 
-// Datos almacenados temporalmente en memoria
 const productos: Producto[] = [
-  {
-    id: 1,
-    nombre: 'Teclado mecánico',
-    precio: 350,
-    stock: 10
-  },
-  {
-    id: 2,
-    nombre: 'Mouse inalámbrico',
-    precio: 175,
-    stock: 15
-  }
+  { id: 1, nombre: 'Teclado mecánico', precio: 350, stock: 10 },
+  { id: 2, nombre: 'Mouse inalámbrico', precio: 175, stock: 15 }
 ]
 
 let siguienteId = 3
 
-// Configuración de Pino
 const logger = pino({
   transport: {
     target: 'pino-pretty',
@@ -44,7 +29,15 @@ const logger = pino({
   }
 })
 
-// Registra cada petición HTTP
+const app = new OpenAPIHono({
+  defaultHook: (resultado, c) => {
+    if (!resultado.success) {
+      return c.json({ error: 'Datos inválidos' }, 400)
+    }
+  }
+})
+
+// Registro de peticiones con Pino
 app.use('*', async (c, next) => {
   const inicio = Date.now()
 
@@ -61,140 +54,199 @@ app.use('*', async (c, next) => {
   )
 })
 
-// Comprueba si un valor es un objeto
-function esObjeto(valor: unknown): valor is Record<string, unknown> {
-  return typeof valor === 'object' && valor !== null && !Array.isArray(valor)
-}
+// Esquema del producto
+const ProductoSchema = z
+  .object({
+    id: z.number().int().positive().openapi({ example: 1 }),
+    nombre: z.string().min(1).openapi({
+      example: 'Teclado mecánico'
+    }),
+    precio: z.number().min(0).openapi({
+      example: 350
+    }),
+    stock: z.number().int().min(0).openapi({
+      example: 10
+    })
+  })
+  .openapi('Producto')
 
-// Valida los datos completos de POST y PUT
-function datosCompletosValidos(datos: unknown): datos is DatosProducto {
-  if (!esObjeto(datos)) {
-    return false
-  }
+// Esquema utilizado por POST y PUT
+const DatosProductoSchema = z
+  .object({
+    nombre: z.string().trim().min(1).openapi({
+      example: 'Monitor gamer'
+    }),
+    precio: z.number().min(0).openapi({
+      example: 2500
+    }),
+    stock: z.number().int().min(0).openapi({
+      example: 5
+    })
+  })
+  .openapi('DatosProducto')
 
-  return (
-    typeof datos.nombre === 'string' &&
-    datos.nombre.trim().length > 0 &&
-    typeof datos.precio === 'number' &&
-    Number.isFinite(datos.precio) &&
-    datos.precio >= 0 &&
-    typeof datos.stock === 'number' &&
-    Number.isInteger(datos.stock) &&
-    datos.stock >= 0
-  )
-}
+// Esquema utilizado por PATCH
+const DatosParcialesProductoSchema =
+  DatosProductoSchema.partial().openapi('DatosParcialesProducto')
 
-// Valida los datos parciales de PATCH
-function datosParcialesValidos(
-  datos: unknown
-): datos is Partial<DatosProducto> {
-  if (!esObjeto(datos)) {
-    return false
-  }
-
-  const campos = Object.keys(datos)
-  const camposPermitidos = ['nombre', 'precio', 'stock']
-
-  if (
-    campos.length === 0 ||
-    campos.some((campo) => !camposPermitidos.includes(campo))
-  ) {
-    return false
-  }
-
-  if (
-    datos.nombre !== undefined &&
-    (typeof datos.nombre !== 'string' || datos.nombre.trim().length === 0)
-  ) {
-    return false
-  }
-
-  if (
-    datos.precio !== undefined &&
-    (typeof datos.precio !== 'number' ||
-      !Number.isFinite(datos.precio) ||
-      datos.precio < 0)
-  ) {
-    return false
-  }
-
-  if (
-    datos.stock !== undefined &&
-    (typeof datos.stock !== 'number' ||
-      !Number.isInteger(datos.stock) ||
-      datos.stock < 0)
-  ) {
-    return false
-  }
-
-  return true
-}
-
-// Convierte y valida el ID recibido en la URL
-function convertirId(valor: string): number | null {
-  const id = Number(valor)
-
-  if (!Number.isInteger(id) || id <= 0) {
-    return null
-  }
-
-  return id
-}
-
-// Ruta principal
-app.get('/', (c) => {
-  return c.json({
-    mensaje: 'API de productos funcionando',
-    endpoints: '/productos'
+// Validación del ID recibido en la URL
+const IdProductoSchema = z.object({
+  id: z.coerce.number().int().positive().openapi({
+    param: {
+      name: 'id',
+      in: 'path'
+    },
+    example: 1
   })
 })
 
-// GET: obtener todos los productos
-app.get('/productos', (c) => {
-  return c.json({
-    total: productos.length,
-    productos
+// Esquema para respuestas de error
+const ErrorSchema = z
+  .object({
+    error: z.string().openapi({
+      example: 'Producto no encontrado'
+    })
   })
+  .openapi('Error')
+
+const RespuestaProductoSchema = z.object({
+  producto: ProductoSchema
 })
 
-// GET: obtener un producto por ID
-app.get('/productos/:id', (c) => {
-  const id = convertirId(c.req.param('id'))
-
-  if (id === null) {
-    return c.json({ error: 'El ID debe ser un entero positivo' }, 400)
-  }
-
-  const producto = productos.find((elemento) => elemento.id === id)
-
-  if (!producto) {
-    return c.json({ error: 'Producto no encontrado' }, 404)
-  }
-
-  return c.json({ producto })
+const RespuestaConMensajeSchema = z.object({
+  mensaje: z.string(),
+  producto: ProductoSchema
 })
 
-// POST: crear un producto
-app.post('/productos', async (c) => {
-  const datos: unknown = await c.req.json().catch(() => null)
-
-  if (!datosCompletosValidos(datos)) {
-    return c.json(
-      {
-        error: 'Datos inválidos',
-        camposRequeridos: {
-          nombre: 'Texto no vacío',
-          precio: 'Número mayor o igual a cero',
-          stock: 'Número entero mayor o igual a cero'
+// GET /productos
+const listarProductosRoute = createRoute({
+  method: 'get',
+  path: '/productos',
+  tags: ['Productos'],
+  summary: 'Obtener todos los productos',
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            total: z.number().int(),
+            productos: z.array(ProductoSchema)
+          })
         }
       },
-      400
+      description: 'Lista de productos'
+    }
+  }
+})
+
+app.openapi(listarProductosRoute, (c) => {
+  return c.json(
+    {
+      total: productos.length,
+      productos
+    },
+    200
+  )
+})
+
+// GET /productos/:id
+const obtenerProductoRoute = createRoute({
+  method: 'get',
+  path: '/productos/{id}',
+  tags: ['Productos'],
+  summary: 'Obtener un producto por ID',
+  request: {
+    params: IdProductoSchema
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: RespuestaProductoSchema
+        }
+      },
+      description: 'Producto encontrado'
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'ID inválido'
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Producto no encontrado'
+    }
+  }
+})
+
+app.openapi(obtenerProductoRoute, (c) => {
+  const { id } = c.req.valid('param')
+
+  const producto = productos.find(
+    (elemento) => elemento.id === id
+  )
+
+  if (!producto) {
+    return c.json(
+      {
+        error: 'Producto no encontrado'
+      },
+      404
     )
   }
 
+  return c.json({ producto }, 200)
+})
+
+// POST /productos
+const crearProductoRoute = createRoute({
+  method: 'post',
+  path: '/productos',
+  tags: ['Productos'],
+  summary: 'Crear un producto',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: DatosProductoSchema
+        }
+      },
+      required: true
+    }
+  },
+  responses: {
+    201: {
+      content: {
+        'application/json': {
+          schema: RespuestaConMensajeSchema
+        }
+      },
+      description: 'Producto creado'
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Datos inválidos'
+    }
+  }
+})
+
+app.openapi(crearProductoRoute, (c) => {
+  const datos = c.req.valid('json')
+
   const nuevoProducto: Producto = {
     id: siguienteId++,
-    nombre: datos.nombre.trim(),
+    nombre: datos.nombre,
     precio: datos.precio,
     stock: datos.stock
   }
@@ -210,99 +262,212 @@ app.post('/productos', async (c) => {
   )
 })
 
-// PUT: reemplazar completamente un producto
-app.put('/productos/:id', async (c) => {
-  const id = convertirId(c.req.param('id'))
-
-  if (id === null) {
-    return c.json({ error: 'El ID debe ser un entero positivo' }, 400)
+// PUT /productos/:id
+const reemplazarProductoRoute = createRoute({
+  method: 'put',
+  path: '/productos/{id}',
+  tags: ['Productos'],
+  summary: 'Reemplazar completamente un producto',
+  request: {
+    params: IdProductoSchema,
+    body: {
+      content: {
+        'application/json': {
+          schema: DatosProductoSchema
+        }
+      },
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: RespuestaConMensajeSchema
+        }
+      },
+      description: 'Producto reemplazado'
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Datos o ID inválidos'
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Producto no encontrado'
+    }
   }
+})
 
-  const posicion = productos.findIndex((producto) => producto.id === id)
+app.openapi(reemplazarProductoRoute, (c) => {
+  const { id } = c.req.valid('param')
+  const datos = c.req.valid('json')
+
+  const posicion = productos.findIndex(
+    (producto) => producto.id === id
+  )
 
   if (posicion === -1) {
-    return c.json({ error: 'Producto no encontrado' }, 404)
-  }
-
-  const datos: unknown = await c.req.json().catch(() => null)
-
-  if (!datosCompletosValidos(datos)) {
     return c.json(
       {
-        error: 'PUT requiere nombre, precio y stock válidos'
+        error: 'Producto no encontrado'
       },
-      400
+      404
     )
   }
 
-  productos[posicion] = {
+  const productoActualizado: Producto = {
     id,
-    nombre: datos.nombre.trim(),
-    precio: datos.precio,
-    stock: datos.stock
+    ...datos
   }
 
-  return c.json({
-    mensaje: 'Producto reemplazado correctamente',
-    producto: productos[posicion]
-  })
+  productos[posicion] = productoActualizado
+
+  return c.json(
+    {
+      mensaje: 'Producto reemplazado correctamente',
+      producto: productoActualizado
+    },
+    200
+  )
 })
 
-// PATCH: modificar únicamente algunos campos
-app.patch('/productos/:id', async (c) => {
-  const id = convertirId(c.req.param('id'))
-
-  if (id === null) {
-    return c.json({ error: 'El ID debe ser un entero positivo' }, 400)
+// PATCH /productos/:id
+const modificarProductoRoute = createRoute({
+  method: 'patch',
+  path: '/productos/{id}',
+  tags: ['Productos'],
+  summary: 'Modificar algunos campos de un producto',
+  request: {
+    params: IdProductoSchema,
+    body: {
+      content: {
+        'application/json': {
+          schema: DatosParcialesProductoSchema
+        }
+      },
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: RespuestaConMensajeSchema
+        }
+      },
+      description: 'Producto modificado'
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Datos o ID inválidos'
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Producto no encontrado'
+    }
   }
+})
 
-  const producto = productos.find((elemento) => elemento.id === id)
+app.openapi(modificarProductoRoute, (c) => {
+  const { id } = c.req.valid('param')
+  const datos = c.req.valid('json')
+
+  const producto = productos.find(
+    (elemento) => elemento.id === id
+  )
 
   if (!producto) {
-    return c.json({ error: 'Producto no encontrado' }, 404)
-  }
-
-  const datos: unknown = await c.req.json().catch(() => null)
-
-  if (!datosParcialesValidos(datos)) {
     return c.json(
       {
-        error: 'Debes enviar al menos un campo válido: nombre, precio o stock'
+        error: 'Producto no encontrado'
+      },
+      404
+    )
+  }
+
+  if (Object.keys(datos).length === 0) {
+    return c.json(
+      {
+        error: 'Debes enviar al menos un campo'
       },
       400
     )
   }
 
-  if (datos.nombre !== undefined) {
-    producto.nombre = datos.nombre.trim()
-  }
+  Object.assign(producto, datos)
 
-  if (datos.precio !== undefined) {
-    producto.precio = datos.precio
-  }
-
-  if (datos.stock !== undefined) {
-    producto.stock = datos.stock
-  }
-
-  return c.json({
-    mensaje: 'Producto modificado correctamente',
-    producto
-  })
+  return c.json(
+    {
+      mensaje: 'Producto modificado correctamente',
+      producto
+    },
+    200
+  )
 })
 
-// DELETE: eliminar un producto
-app.delete('/productos/:id', (c) => {
-  const id = convertirId(c.req.param('id'))
-
-  if (id === null) {
-    return c.json({ error: 'El ID debe ser un entero positivo' }, 400)
+// DELETE /productos/:id
+const eliminarProductoRoute = createRoute({
+  method: 'delete',
+  path: '/productos/{id}',
+  tags: ['Productos'],
+  summary: 'Eliminar un producto',
+  request: {
+    params: IdProductoSchema
+  },
+  responses: {
+    204: {
+      description: 'Producto eliminado'
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'ID inválido'
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Producto no encontrado'
+    }
   }
+})
 
-  const posicion = productos.findIndex((producto) => producto.id === id)
+app.openapi(eliminarProductoRoute, (c) => {
+  const { id } = c.req.valid('param')
+
+  const posicion = productos.findIndex(
+    (producto) => producto.id === id
+  )
 
   if (posicion === -1) {
-    return c.json({ error: 'Producto no encontrado' }, 404)
+    return c.json(
+      {
+        error: 'Producto no encontrado'
+      },
+      404
+    )
   }
 
   productos.splice(posicion, 1)
@@ -310,9 +475,47 @@ app.delete('/productos/:id', (c) => {
   return c.body(null, 204)
 })
 
-// Respuesta para cualquier ruta inexistente
+// Ruta principal
+app.get('/', (c) => {
+  return c.json({
+    mensaje: 'API de productos funcionando',
+    documentacion: '/docs'
+  })
+})
+
+// Documento OpenAPI generado automáticamente
+app.doc31('/openapi.json', {
+  openapi: '3.1.0',
+  info: {
+    title: 'API de Productos',
+    version: '2.0.0',
+    description:
+      'API CRUD creada con Hono, TypeScript, Pino y Scalar.'
+  },
+  servers: [
+    {
+      url: `http://localhost:${puerto}`
+    }
+  ]
+})
+
+// Interfaz de documentación Scalar
+app.get(
+  '/docs',
+  Scalar({
+    url: '/openapi.json',
+    theme: 'purple',
+    pageTitle: 'API de Productos'
+  })
+)
+
 app.notFound((c) => {
-  return c.json({ error: 'Ruta no encontrada' }, 404)
+  return c.json(
+    {
+      error: 'Ruta no encontrada'
+    },
+    404
+  )
 })
 
 serve({
@@ -320,4 +523,10 @@ serve({
   port: puerto
 })
 
-logger.info(`Servidor ejecutándose en http://localhost:${puerto}`)
+logger.info(
+  `Servidor ejecutándose en http://localhost:${puerto}`
+)
+
+logger.info(
+  `Documentación disponible en http://localhost:${puerto}/docs`
+)

@@ -1,8 +1,13 @@
-# API de Productos con Hono
+# API de Productos con Hono y Scalar
 
-API REST sencilla desarrollada en TypeScript utilizando Hono y Pino. Permite consultar, crear, reemplazar, modificar y eliminar productos.
+API REST desarrollada en TypeScript utilizando Hono y Pino. Permite consultar, crear, reemplazar, modificar y eliminar productos.
 
-Los datos se almacenan temporalmente en un arreglo, por lo que no se utiliza una base de datos.
+La documentación se genera automáticamente con OpenAPI y se presenta mediante Scalar en la ruta `/docs`.
+
+## Ramas del proyecto
+
+- `hw-01`: API CRUD con Hono, TypeScript y Pino.
+- `hw-02`: misma API, agregando validación con Zod y documentación con OpenAPI y Scalar.
 
 ## Tecnologías utilizadas
 
@@ -10,11 +15,14 @@ Los datos se almacenan temporalmente en un arreglo, por lo que no se utiliza una
 - TypeScript
 - Hono
 - Pino
+- Zod
+- OpenAPI 3.1
+- Scalar
 - TSX
 
 ## Requisitos
 
-Antes de ejecutar el proyecto es necesario tener instalado:
+Es necesario tener instalado:
 
 - Node.js 18 o superior
 - npm
@@ -34,10 +42,10 @@ Entrar en la carpeta:
 cd api_productos-typescript
 ```
 
-Cambiar a la rama de la primera tarea:
+Cambiar a la rama de la segunda tarea:
 
 ```bash
-git switch hw-01
+git switch hw-02
 ```
 
 Instalar las dependencias:
@@ -58,6 +66,22 @@ La API estará disponible en:
 http://localhost:3000
 ```
 
+## Documentación
+
+La documentación interactiva de Scalar está disponible en:
+
+```text
+http://localhost:3000/docs
+```
+
+El documento OpenAPI generado automáticamente está disponible en:
+
+```text
+http://localhost:3000/openapi.json
+```
+
+Desde Scalar es posible consultar los esquemas, códigos de respuesta y probar cada endpoint.
+
 ## Compilar el proyecto
 
 ```bash
@@ -74,13 +98,12 @@ npm start
 
 | Método | Endpoint | Descripción | Código exitoso |
 |---|---|---|---|
-| GET | `/` | Información principal de la API | 200 |
 | GET | `/productos` | Obtener todos los productos | 200 |
-| GET | `/productos/:id` | Obtener un producto por ID | 200 |
+| GET | `/productos/{id}` | Obtener un producto por ID | 200 |
 | POST | `/productos` | Crear un producto | 201 |
-| PUT | `/productos/:id` | Reemplazar completamente un producto | 200 |
-| PATCH | `/productos/:id` | Modificar algunos campos | 200 |
-| DELETE | `/productos/:id` | Eliminar un producto | 204 |
+| PUT | `/productos/{id}` | Reemplazar completamente un producto | 200 |
+| PATCH | `/productos/{id}` | Modificar algunos campos | 200 |
+| DELETE | `/productos/{id}` | Eliminar un producto | 204 |
 
 ## Ejemplo para POST
 
@@ -94,7 +117,7 @@ npm start
 
 ## Ejemplo para PUT
 
-PUT requiere todos los campos del producto:
+PUT requiere todos los campos:
 
 ```json
 {
@@ -120,10 +143,10 @@ PATCH permite modificar solamente algunos campos:
 |---|---|
 | 200 | Operación realizada correctamente |
 | 201 | Producto creado correctamente |
-| 204 | Producto eliminado sin contenido en la respuesta |
+| 204 | Producto eliminado sin contenido |
 | 400 | Datos o ID inválidos |
 | 404 | Producto o ruta no encontrada |
 
-## Persistencia de datos
+## Persistencia
 
-La API no utiliza una base de datos. Los productos se almacenan en memoria y vuelven a su estado inicial cada vez que se reinicia el servidor.
+La API no utiliza una base de datos. Los productos se almacenan temporalmente en un arreglo y vuelven a su estado inicial cuando se reinicia el servidor.
