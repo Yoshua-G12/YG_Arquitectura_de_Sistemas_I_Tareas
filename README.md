@@ -1,22 +1,16 @@
-# API de Productos con Hono
+# API de Biblioteca y Función de Aptitud
 
-API REST sencilla desarrollada en TypeScript utilizando Hono y Pino. Permite consultar, crear, reemplazar, modificar y eliminar productos.
+API desarrollada en TypeScript con Hono. Permite listar y registrar libros en memoria y evaluar la salud arquitectónica del sistema mediante una función de aptitud.
 
-Los datos se almacenan temporalmente en un arreglo, por lo que no se utiliza una base de datos.
+## Rama de la actividad
 
-## Tecnologías utilizadas
-
-- Node.js
-- TypeScript
-- Hono
-- Pino
-- TSX
+```text
+assesment-01
+```
 
 ## Requisitos
 
-Antes de ejecutar el proyecto es necesario tener instalado:
-
-- Node.js 18 o superior
+- Node.js
 - npm
 - Git
 
@@ -28,16 +22,16 @@ Clonar el repositorio:
 git clone https://github.com/Yoshua-G12/api_productos-typescript.git
 ```
 
-Entrar en la carpeta:
+Entrar al proyecto:
 
 ```bash
 cd api_productos-typescript
 ```
 
-Cambiar a la rama de la primera tarea:
+Cambiar a la rama de la actividad:
 
 ```bash
-git switch hw-01
+git switch assesment-01
 ```
 
 Instalar las dependencias:
@@ -46,7 +40,9 @@ Instalar las dependencias:
 npm install
 ```
 
-## Ejecutar en desarrollo
+## Ejecutar el proyecto
+
+Modo desarrollo:
 
 ```bash
 npm run dev
@@ -58,72 +54,93 @@ La API estará disponible en:
 http://localhost:3000
 ```
 
-## Compilar el proyecto
+Para comprobar que el proyecto compila:
 
 ```bash
 npm run build
 ```
 
-## Ejecutar el proyecto compilado
-
-```bash
-npm start
-```
-
 ## Endpoints
 
-| Método | Endpoint | Descripción | Código exitoso |
-|---|---|---|---|
-| GET | `/` | Información principal de la API | 200 |
-| GET | `/productos` | Obtener todos los productos | 200 |
-| GET | `/productos/:id` | Obtener un producto por ID | 200 |
-| POST | `/productos` | Crear un producto | 201 |
-| PUT | `/productos/:id` | Reemplazar completamente un producto | 200 |
-| PATCH | `/productos/:id` | Modificar algunos campos | 200 |
-| DELETE | `/productos/:id` | Eliminar un producto | 204 |
+### Listar libros
 
-## Ejemplo para POST
+```http
+GET /books
+```
+
+Respuesta correcta:
+
+```text
+200 OK
+```
+
+### Agregar un libro
+
+```http
+POST /books
+Content-Type: application/json
+```
+
+Ejemplo de cuerpo JSON:
 
 ```json
 {
-  "nombre": "Monitor gamer",
-  "precio": 2500,
-  "stock": 5
+  "titulo": "Arquitectura limpia",
+  "autor": "Robert C. Martin",
+  "prestado": true
 }
 ```
 
-## Ejemplo para PUT
+Respuesta correcta:
 
-PUT requiere todos los campos del producto:
-
-```json
-{
-  "nombre": "Monitor gamer 27 pulgadas",
-  "precio": 2800,
-  "stock": 8
-}
+```text
+201 Created
 ```
 
-## Ejemplo para PATCH
+Si el cuerpo no se envía como JSON:
 
-PATCH permite modificar solamente algunos campos:
-
-```json
-{
-  "stock": 12
-}
+```text
+415 Unsupported Media Type
 ```
 
-## Códigos de respuesta
+Si los datos son inválidos:
 
-| Código | Significado |
-|---|---|
-| 200 | Operación realizada correctamente |
-| 201 | Producto creado correctamente |
-| 204 | Producto eliminado sin contenido en la respuesta |
-| 400 | Datos o ID inválidos |
-| 404 | Producto o ruta no encontrada |
+```text
+400 Bad Request
+```
 
-## Persistencia de datos
+### Comprobar la salud arquitectónica
 
-La API no utiliza una base de datos. Los productos se almacenan en memoria y vuelven a su estado inicial cada vez que se reinicia el servidor.
+```http
+GET /health/fitness
+```
+
+La función de aptitud evalúa estas restricciones:
+
+1. El número total de libros no debe exceder los 100.
+2. La proporción de libros prestados debe ser menor al 80%.
+
+Si ambas condiciones se cumplen:
+
+```text
+200 OK
+status: Healthy
+```
+
+Si alguna condición no se cumple:
+
+```text
+503 Service Unavailable
+status: Degradacion de Calidad
+```
+
+El reporte incluye:
+
+- Total de libros.
+- Cantidad de libros prestados.
+- Porcentaje de libros prestados.
+- Resultado de cada restricción arquitectónica.
+
+## Almacenamiento
+
+Los datos se almacenan temporalmente en memoria. Al reiniciar el servidor, la lista regresa a su estado inicial.
