@@ -185,7 +185,32 @@ https://<REEMPLAZAR-CON-TU-DOMINIO-CLOUDFRONT>.cloudfront.net
 
 ---
 
-## 8. Sección de Evidencias
+## 8. Publicación Temporal en GitHub Pages
+
+Además del pipeline AWS, este repositorio incluye un workflow separado para publicar temporalmente la página en GitHub Pages sin modificar el despliegue hacia S3/CloudFront:
+
+- Workflow de AWS: [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml), usa `npm run build` y mantiene la base `/`.
+- Workflow de GitHub Pages: [`.github/workflows/pages.yml`](.github/workflows/pages.yml), usa `npm run build:pages` y compila con la base `/YG_Arquitectura_de_Sistemas_I_Tareas/`.
+
+URL esperada de GitHub Pages:
+
+```text
+https://yoshua-g12.github.io/YG_Arquitectura_de_Sistemas_I_Tareas/
+```
+
+### Activación Manual de GitHub Pages
+
+1. En GitHub, abre el repositorio `Yoshua-G12/YG_Arquitectura_de_Sistemas_I_Tareas`.
+2. Ve a **Settings > Pages**.
+3. En **Build and deployment**, selecciona **Source: GitHub Actions**.
+4. Ve a **Actions** y selecciona **Deploy HW-04 to GitHub Pages**.
+5. Haz clic en **Run workflow**, selecciona la rama `hw-04` y ejecuta el workflow.
+
+Este flujo no requiere credenciales de AWS ni altera el pipeline `Deploy HW-04 to AWS S3 & CloudFront`.
+
+---
+
+## 9. Sección de Evidencias
 
 > **Instrucciones para el estudiante:**
 > Guarda las capturas de pantalla con los nombres indicados dentro de la carpeta [`docs/images/`](docs/images/) para que se visualicen automáticamente a continuación.

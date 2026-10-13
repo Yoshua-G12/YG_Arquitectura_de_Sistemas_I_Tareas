@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:pages": "tsc && vite build --base=/YG_Arquitectura_de_Sistemas_I_Tareas/",
     "preview": "vite preview"
   },
   "repository": {
