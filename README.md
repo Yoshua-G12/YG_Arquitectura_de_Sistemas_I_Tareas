@@ -203,8 +203,12 @@ https://yoshua-g12.github.io/YG_Arquitectura_de_Sistemas_I_Tareas/
 1. En GitHub, abre el repositorio `Yoshua-G12/YG_Arquitectura_de_Sistemas_I_Tareas`.
 2. Ve a **Settings > Pages**.
 3. En **Build and deployment**, selecciona **Source: GitHub Actions**.
-4. Ve a **Actions** y selecciona **Deploy HW-04 to GitHub Pages**.
-5. Haz clic en **Run workflow**, selecciona la rama `hw-04` y ejecuta el workflow.
+4. Ve a **Settings > Environments** y abre el entorno **github-pages**.
+5. En **Deployment branches and tags**, selecciona **Selected branches and tags**. Agrega una regla con **Add deployment branch or tag rule**, elige **Branch**, escribe `hw-04` y pulsa **Add rule**. Conserva las reglas existentes.
+6. Sube los cambios a la rama `hw-04`. Cada `push` a esa rama inicia automáticamente el workflow de Pages.
+7. Ve a **Actions > Deploy HW-04 to GitHub Pages**, abre la ejecución correspondiente a `hw-04` y verifica que ambos jobs terminen correctamente.
+
+Si una ejecución falla con `Branch "hw-04" is not allowed to deploy to github-pages due to environment protection rules`, agrega la regla del paso 5 y vuelve a esa ejecución. Usa **Re-run jobs > Re-run failed jobs** para reintentar la publicación con el artefacto ya compilado.
 
 Este flujo no requiere credenciales de AWS ni altera el pipeline `Deploy HW-04 to AWS S3 & CloudFront`.
 
