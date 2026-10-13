@@ -1,0 +1,6 @@
+# Carpeta para colocar capturas de pantalla de evidencias:
+# - vite_local.png: Captura de la aplicación ejecutándose en local con Vite
+# - s3_bucket.png: Captura del bucket S3 en AWS con los archivos dist/ subidos
+# - cloudfront_distribution.png: Captura de la distribución de CloudFront en AWS
+# - github_actions_pipeline.png: Captura de la ejecución exitosa del pipeline de CI/CD
+# - deployment_live.png: Captura de la página cargada exitosamente desde la URL de CloudFront
