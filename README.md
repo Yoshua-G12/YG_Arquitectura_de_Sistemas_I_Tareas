@@ -175,13 +175,7 @@ Para monitorear o disparar el pipeline:
 
 ## 7. URL Pública de CloudFront
 
-Una vez desplegada la infraestructura en AWS CloudFront, la aplicación estará disponible públicamente en la siguiente dirección:
-
-```text
-https://<REEMPLAZAR-CON-TU-DOMINIO-CLOUDFRONT>.cloudfront.net
-```
-
-*(Ejemplo: `https://d1234567890abc.cloudfront.net`)*
+Despliegue en AWS CloudFront pendiente.
 
 ---
 
@@ -243,6 +237,6 @@ Este flujo no requiere credenciales de AWS ni altera el pipeline `Deploy HW-04 t
 
 ---
 
-### 5. Página Desplegada en Producción (CloudFront URL)
-![Despliegue en Vivo](docs/images/deployment_live.png)
-*(Captura de la página web cargada desde el dominio público HTTPS de CloudFront)*
+### 5. Publicación Temporal en GitHub Pages
+![Página publicada en GitHub Pages](docs/images/github_pages_live.jpg)
+Página publicada: https://yoshua-g12.github.io/YG_Arquitectura_de_Sistemas_I_Tareas/
