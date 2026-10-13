@@ -7,19 +7,12 @@ on:
   workflow_dispatch:
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
-  deploy:
-    name: Build & Deploy to AWS
+  build:
+    name: Build & Verify Artifact
     runs-on: ubuntu-latest
-
-    env:
-      AWS_REGION: ${{ secrets.AWS_REGION || vars.AWS_REGION }}
-      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN || vars.AWS_ROLE_ARN }}
-      S3_BUCKET: ${{ secrets.S3_BUCKET || vars.S3_BUCKET }}
-      CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID || vars.CLOUDFRONT_DISTRIBUTION_ID }}
 
     steps:
       - name: Checkout repository
@@ -37,6 +30,51 @@ jobs:
       - name: Build project with Vite
         run: npm run build
 
+      - name: Verify build output
+        run: |
+          test -f dist/index.html || (echo "Error: dist/index.html no fue generado." && exit 1)
+          echo "dist/index.html verificado exitosamente."
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-artifact
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    name: Deploy to AWS S3 & CloudFront
+    needs: build
+    runs-on: ubuntu-latest
+    if: >-
+      (secrets.AWS_ROLE_ARN != '' || vars.AWS_ROLE_ARN != '') &&
+      (secrets.AWS_REGION != '' || vars.AWS_REGION != '') &&
+      (secrets.S3_BUCKET != '' || vars.S3_BUCKET != '') &&
+      (secrets.CLOUDFRONT_DISTRIBUTION_ID != '' || vars.CLOUDFRONT_DISTRIBUTION_ID != '')
+
+    permissions:
+      id-token: write
+      contents: read
+
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION || vars.AWS_REGION }}
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN || vars.AWS_ROLE_ARN }}
+      S3_BUCKET: ${{ secrets.S3_BUCKET || vars.S3_BUCKET }}
+      CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID || vars.CLOUDFRONT_DISTRIBUTION_ID }}
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-artifact
+          path: dist
+
+      - name: Verify downloaded artifact
+        run: |
+          test -f dist/index.html || (echo "Error: dist/index.html no se encuentra en el artefacto descargado." && exit 1)
+          echo "Artefacto dist/ verificado correctamente."
+
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -53,3 +91,4 @@ jobs:
           aws cloudfront create-invalidation \
             --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" \
             --paths "/*"
+

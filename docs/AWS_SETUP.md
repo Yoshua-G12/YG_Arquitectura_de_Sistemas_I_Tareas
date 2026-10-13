@@ -242,15 +242,22 @@ En tu repositorio de GitHub, configura los valores requeridos para que el workfl
 
 ## 10. Ejecución y Validación del Pipeline
 
-1. Realiza un `git push` a la rama `hw-04` o ve a la pestaña **Actions** en GitHub, selecciona el flujo **Deploy HW-04 to AWS S3 & CloudFront** y presiona **Run workflow**.
-2. Observa la ejecución de cada paso:
-   - `Checkout repository`
-   - `Setup Node.js LTS`
-   - `Install dependencies (npm ci)`
-   - `Build project with Vite`
-   - `Configure AWS credentials via OIDC`
-   - `Sync dist/ to Amazon S3`
-   - `Invalidate CloudFront cache`
+El pipeline está estructurado en 2 jobs desacoplados:
+
+1. **Job 1: `Build & Verify Artifact`**
+   - Se ejecuta siempre en cada `push` a `hw-04` o vía `workflow_dispatch`.
+   - Realiza checkout, configura Node 20 LTS, ejecuta `npm ci`, compila con `npm run build`, valida `dist/index.html` y sube el artefacto `dist-artifact`.
+   - **Funciona y pasa a verde de forma autónoma**, incluso si la cuenta de AWS aún no está verificada o no se han cargado los secretos.
+
+2. **Job 2: `Deploy to AWS S3 & CloudFront`**
+   - Si las variables/secretos de AWS aún no están configurados en GitHub, el job aparecerá como **Skipped** (Omitido en gris), manteniendo el pipeline exitoso.
+   - Una vez que cargues los 4 secretos/variables (`AWS_ROLE_ARN`, `AWS_REGION`, `S3_BUCKET`, `CLOUDFRONT_DISTRIBUTION_ID`), el job se ejecutará automáticamente:
+     - Descarga el artefacto `dist/`.
+     - Verifica la integridad de los archivos.
+     - Asume el rol IAM temporal mediante OIDC.
+     - Sincroniza hacia Amazon S3 (`aws s3 sync`).
+     - Invalida la caché de CloudFront (`aws cloudfront create-invalidation`).
+
 3. En CloudFront, copia el **Nombre de dominio de distribución** (*Distribution domain name*):
    `https://<TU-DISTRIBUTION-ID-O-SUBDOMINIO>.cloudfront.net`
 4. Abre esa URL en tu navegador web. Debe cargar la página web de la HW-04 con el estado activo.

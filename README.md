@@ -37,19 +37,51 @@ El pipeline está definido en el archivo [`.github/workflows/deploy.yml`](.githu
 ### Fases del Workflow
 
 ```text
-[ Push a hw-04 ] ──► [ Checkout ] ──► [ Node.js LTS ] ──► [ npm ci ] ──► [ npm run build ]
-                                                                                   │
-                                                                                   ▼
-[ Invalidación CloudFront ] ◄── [ Sincronización S3 ] ◄── [ Autenticación OIDC AWS ]
+### Fases del Workflow (2 Jobs Desacoplados)
+
+```text
+[ Push a hw-04 / workflow_dispatch ]
+                 │
+                 ▼
+ ┌─────────────────────────────────────────────────────────┐
+ │                   JOB 1: BUILD                          │
+ │  1. actions/checkout@v4                                 │
+ │  2. Setup Node.js 20 LTS (cache npm)                    │
+ │  3. npm ci (instalación determinista)                   │
+ │  4. npm run build (tsc + vite build)                    │
+ │  5. Verificación de dist/index.html                     │
+ │  6. actions/upload-artifact@v4 (genera dist-artifact)   │
+ └─────────────────────────┬───────────────────────────────┘
+                           │
+                           ▼
+ ┌─────────────────────────────────────────────────────────┐
+ │                   JOB 2: DEPLOY                         │
+ │  Condición: Variables AWS configuradas en GitHub        │
+ │  - Si faltan variables: Estado SKIPPED (Omitido)        │
+ │  - Si están listas:                                     │
+ │    1. actions/download-artifact@v4 (extrae en dist/)    │
+ │    2. Verificación de integridad del artefacto          │
+ │    3. Autenticación AWS IAM mediante OIDC               │
+ │    4. aws s3 sync dist/ s3://${S3_BUCKET} --delete      │
+ │    5. aws cloudfront create-invalidation (/*)           │
+ └─────────────────────────────────────────────────────────┘
 ```
 
-1. **Checkout del Repositorio:** Clona el código fuente en el entorno virtual de GitHub Actions.
+#### Job 1: Build & Verify Artifact
+1. **Checkout del Repositorio:** Clona el código fuente en el entorno virtual `ubuntu-latest`.
 2. **Configuración de Node.js:** Prepara la versión LTS (Node.js 20) con caché de dependencias `npm`.
 3. **Instalación Limpia (`npm ci`):** Instala de forma exacta y reproducible las dependencias declaradas en `package-lock.json`.
 4. **Compilación del Proyecto (`npm run build`):** Ejecuta el chequeo estático de tipos (`tsc`) y genera la compilación optimizada en `dist/`.
-5. **Autenticación con AWS (OIDC):** Mediante `aws-actions/configure-aws-credentials@v4`, solicita un token temporal a AWS STS asumiendo el rol parametrizado en `AWS_ROLE_ARN`.
-6. **Sincronización a Amazon S3:** Ejecuta `aws s3 sync dist/ s3://${S3_BUCKET} --delete` para publicar los archivos y depurar aquellos que ya no existan en la compilación.
-7. **Invalidación de Caché en CloudFront:** Ejecuta `aws cloudfront create-invalidation --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" --paths "/*"`, propagando los cambios actualizados a todos los Edge Locations.
+5. **Verificación de Salida:** Valida la existencia física de `dist/index.html`.
+6. **Carga de Artefacto (`upload-artifact@v4`):** Publica el paquete `dist/` como artefacto temporal descargable en GitHub Actions. **Este job finaliza exitosamente de forma 100% independiente sin requerir credenciales de AWS**.
+
+#### Job 2: Deploy to AWS S3 & CloudFront
+- **Dependencia:** Depende directamente del éxito del Job 1 (`needs: build`).
+- **Condición de Ejecución Segura:** Evalúa la presencia de `AWS_ROLE_ARN`, `AWS_REGION`, `S3_BUCKET` y `CLOUDFRONT_DISTRIBUTION_ID`. Si no están configuradas (por ejemplo, mientras la cuenta de AWS está pendiente de verificación), el job pasa automáticamente al estado **Skipped** (Omitido) sin marcar error en el pipeline.
+- **Descarga de Artefacto (`download-artifact@v4`):** Recupera la carpeta `dist/` generada por el Job 1.
+- **Autenticación con AWS (OIDC):** Mediante `aws-actions/configure-aws-credentials@v4`, asume el rol IAM temporal mediante token federado.
+- **Sincronización a Amazon S3:** Publica los archivos con `aws s3 sync dist/ s3://${S3_BUCKET} --delete`.
+- **Invalidación de Caché en CloudFront:** Ejecuta `aws cloudfront create-invalidation --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" --paths "/*"`.
 
 ---
 
