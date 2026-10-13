@@ -1,38 +1,30 @@
 {
-  "name": "api_productos-typescript",
+  "name": "hw-04-primer-deployment",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "HW-04: Implementación de página web con Vite y pipeline de CI/CD hacia AWS S3 y CloudFront",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Yoshua-G12/api_productos-typescript.git"
+    "url": "git+https://github.com/Yoshua-G12/YG_Arquitectura_de_Sistemas_I_Tareas.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "vite",
+    "typescript",
+    "aws",
+    "s3",
+    "cloudfront",
+    "ci-cd",
+    "github-actions"
+  ],
+  "author": "Yoshua",
   "license": "ISC",
-  "type": "module",
-  "bugs": {
-    "url": "https://github.com/Yoshua-G12/api_productos-typescript/issues"
-  },
-  "homepage": "https://github.com/Yoshua-G12/api_productos-typescript#readme",
-  "dependencies": {
-    "@hono/node-server": "^2.1.0",
-    "hono": "^4.13.0",
-    "pino": "^10.3.1"
-  },
   "devDependencies": {
-    "@types/node": "^26.1.2",
-    "pino-pretty": "^13.1.3",
-    "tsx": "^4.23.8",
-    "typescript": "^7.0.2"
-  },
-  "allowScripts": {
-    "esbuild@0.28.1": true
+    "typescript": "^5.8.2",
+    "vite": "^6.2.0"
   }
 }
