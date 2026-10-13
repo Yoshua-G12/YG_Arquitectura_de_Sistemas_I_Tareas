@@ -3,11 +3,304 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HW-04 | Primer Deployment</title>
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="description" content="HW-04: Primer Deployment - Arquitectura de Sistemas I. Aplicación web estática desplegada con Vite, GitHub Actions, Amazon S3 y AWS CloudFront." />
+    <title>HW-04 | Primer Deployment - Arquitectura de Sistemas I</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <div id="app"></div>
+    <!-- Encabezado / Hero -->
+    <header>
+      <div class="container header-content">
+        <div class="header-brand">
+          <div class="course-badge">
+            <span class="dot"></span>
+            <span>Arquitectura de Sistemas I</span>
+          </div>
+          <h1 class="main-title">HW-04 | Primer Deployment</h1>
+        </div>
+        <div class="deployment-status-pill" id="pipeline-pill">
+          <div class="status-ping">
+            <span class="ping-ring"></span>
+            <span class="ping-dot"></span>
+          </div>
+          <span id="pipeline-status-text">Pipeline Status: S3 + CloudFront</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="container">
+      <!-- Apartado: Despliegue Automatizado -->
+      <section class="deployment-banner" aria-label="Confirmación de Despliegue">
+        <div class="banner-text">
+          <h2>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            Proyecto Desplegado Mediante Pipeline Automatizado
+          </h2>
+          <p>
+            Esta página web estática fue compilada y publicada sin intervención manual directamente desde el repositorio en GitHub.
+            Cada actualización enviada mediante un <code>push</code> a la rama <code>hw-04</code> dispara un flujo de integración y despliegue continuo (CI/CD) que valida el código, sincroniza los artefactos con <strong>Amazon S3</strong> e invalida la caché distribuida en <strong>Amazon CloudFront</strong>.
+          </p>
+        </div>
+        <div class="banner-meta">
+          <div class="meta-row">
+            <span class="meta-label">Rama origen:</span>
+            <span class="meta-value">hw-04</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Pipeline:</span>
+            <span class="meta-value">GitHub Actions</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Destino S3:</span>
+            <span class="meta-value">Private Bucket (OAC)</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">CDN / Edge:</span>
+            <span class="meta-value">AWS CloudFront</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección 1: ¿Qué es CI/CD? -->
+      <section id="cicd" aria-labelledby="cicd-heading">
+        <div class="section-header">
+          <span class="section-tag">Fundamentos DevOps</span>
+          <h2 class="section-title" id="cicd-heading">¿Qué es CI/CD?</h2>
+          <p class="section-description">
+            La Integración Continua (CI) y el Despliegue Continuo (CD) constituyen la columna vertebral de la entrega moderna de software en la arquitectura de sistemas.
+          </p>
+        </div>
+
+        <div class="cicd-grid">
+          <article class="concept-card">
+            <div class="card-icon">CI</div>
+            <h3>Integración Continua (Continuous Integration)</h3>
+            <p>
+              Práctica de ingeniería donde los desarrolladores integran cambios de código con frecuencia en un repositorio compartido. Cada confirmación desencadena automáticamente la compilación del proyecto y la ejecución de pruebas para detectar errores de forma temprana.
+            </p>
+            <ul class="card-points">
+              <li>Detección temprana de incompatibilidades y bugs</li>
+              <li>Compilación automatizada con TypeScript y Vite</li>
+              <li>Consistencia garantizada del código fuente</li>
+            </ul>
+          </article>
+
+          <article class="concept-card">
+            <div class="card-icon cd-icon">CD</div>
+            <h3>Despliegue Continuo (Continuous Deployment)</h3>
+            <p>
+              Extensión de la integración continua donde los artefactos generados en la fase de construcción se transfieren y publican automáticamente en los entornos de producción o CDN global sin necesidad de procesos manuales propensos a error.
+            </p>
+            <ul class="card-points">
+              <li>Publicación automatizada sin fricción ni demoras</li>
+              <li>Sincronización segura de artefactos con Amazon S3</li>
+              <li>Invalidación inmediata de caché en CloudFront</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <!-- Sección 2: Tecnologías Utilizadas -->
+      <section id="tecnologias" aria-labelledby="tech-heading">
+        <div class="section-header">
+          <span class="section-tag">Stack Tecnológico</span>
+          <h2 class="section-title" id="tech-heading">Tecnologías del Pipeline y Aplicación</h2>
+          <p class="section-description">
+            Conjunto de herramientas de desarrollo frontend y servicios en la nube de Amazon Web Services que conforman la solución arquitectónica implementada.
+          </p>
+        </div>
+
+        <div class="tech-grid">
+          <!-- Vite -->
+          <article class="tech-card" data-tech="vite">
+            <div class="tech-header">
+              <div class="tech-icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+              </div>
+              <div>
+                <h3 class="tech-name">Vite</h3>
+                <span class="tech-badge">Frontend Bundler</span>
+              </div>
+            </div>
+            <p class="tech-desc">
+              Herramienta de compilación ultrarrápida impulsada por ES modules nativos y Rollup. Compila y empaqueta el código TypeScript y estilos en la carpeta optimizada <code>dist/</code>.
+            </p>
+            <span class="tech-role">Compilación & Minificación</span>
+          </article>
+
+          <!-- GitHub Actions -->
+          <article class="tech-card" data-tech="github">
+            <div class="tech-header">
+              <div class="tech-icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#f8fafc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.15-1.11-1.46-1.11-1.46-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02.8-.22 1.65-.33 2.5-.33.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="tech-name">GitHub Actions</h3>
+                <span class="tech-badge">CI/CD Orchestration</span>
+              </div>
+            </div>
+            <p class="tech-desc">
+              Plataforma de automatización que ejecuta el flujo de trabajo en cada <code>push</code> a <code>hw-04</code>. Gestiona la autenticación segura mediante OIDC sin exponer claves permanentes.
+            </p>
+            <span class="tech-role">Pipeline & OIDC Auth</span>
+          </article>
+
+          <!-- Amazon S3 -->
+          <article class="tech-card" data-tech="s3">
+            <div class="tech-header">
+              <div class="tech-icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                  <polyline points="3.29 7 12 12 20.71 7"></polyline>
+                  <line x1="12" y1="22" x2="12" y2="12"></line>
+                </svg>
+              </div>
+              <div>
+                <h3 class="tech-name">Amazon S3</h3>
+                <span class="tech-badge">Cloud Object Storage</span>
+              </div>
+            </div>
+            <p class="tech-desc">
+              Almacenamiento de alta durabilidad para alojar los archivos estáticos de la aplicación. Configurado en modo privado bloqueando acceso público directo, accesible únicamente por CloudFront.
+            </p>
+            <span class="tech-role">Hosting Estático Seguro</span>
+          </article>
+
+          <!-- AWS CloudFront -->
+          <article class="tech-card" data-tech="cloudfront">
+            <div class="tech-header">
+              <div class="tech-icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="tech-name">AWS CloudFront</h3>
+                <span class="tech-badge">Global CDN</span>
+              </div>
+            </div>
+            <p class="tech-desc">
+              Red de entrega de contenido (CDN) distribuida globalmente con Origin Access Control (OAC). Distribuye el contenido con baja latencia, compresión HTTPS y caché inteligente en edge locations.
+            </p>
+            <span class="tech-role">CDN + OAC + SSL</span>
+          </article>
+        </div>
+      </section>
+
+      <!-- Sección 3: Flujo del Pipeline -->
+      <section id="flujo-pipeline" aria-labelledby="pipeline-flow-heading">
+        <div class="section-header">
+          <span class="section-tag">Automatización</span>
+          <h2 class="section-title" id="pipeline-flow-heading">Flujo de Ejecución del Pipeline</h2>
+          <p class="section-description">
+            Pasos orquestados en el archivo <code>.github/workflows/deploy.yml</code> al confirmar cambios en el repositorio.
+          </p>
+        </div>
+
+        <div class="pipeline-steps">
+          <div class="step-card">
+            <span class="step-number">1</span>
+            <h4>Checkout & Entorno</h4>
+            <p>Descarga del repositorio y configuración de Node.js 20 LTS compatible.</p>
+            <code>actions/checkout@v4</code>
+          </div>
+
+          <div class="step-card">
+            <span class="step-number">2</span>
+            <h4>Instalación Limpia</h4>
+            <p>Instalación determinista de dependencias del proyecto.</p>
+            <code>npm ci</code>
+          </div>
+
+          <div class="step-card">
+            <span class="step-number">3</span>
+            <h4>Build con Vite</h4>
+            <p>Verificación de tipos con TypeScript y empaquetado optimizado en <code>dist/</code>.</p>
+            <code>npm run build</code>
+          </div>
+
+          <div class="step-card">
+            <span class="step-number">4</span>
+            <h4>Autenticación OIDC</h4>
+            <p>Asunción de rol IAM temporal mediante token federado de GitHub sin claves estáticas.</p>
+            <code>aws-actions/configure-aws-credentials@v4</code>
+          </div>
+
+          <div class="step-card">
+            <span class="step-number">5</span>
+            <h4>Sincronización S3</h4>
+            <p>Transferencia de archivos a Amazon S3 con eliminación de archivos obsoletos.</p>
+            <code>aws s3 sync dist/ s3://$BUCKET --delete</code>
+          </div>
+
+          <div class="step-card">
+            <span class="step-number">6</span>
+            <h4>Invalidación CDN</h4>
+            <p>Invalidación de caché para que los usuarios vean los cambios inmediatamente.</p>
+            <code>aws cloudfront create-invalidation /*</code>
+          </div>
+        </div>
+      </section>
+
+      <!-- Panel Interactivo con TypeScript -->
+      <section class="interactive-panel" id="telemetria" aria-label="Información de Ejecución en Vivo">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>Telemetría de la Sesión en el Navegador</span>
+          </div>
+          <button id="refresh-telemetry-btn" class="panel-btn">Actualizar Métricas</button>
+        </div>
+
+        <div class="client-info-grid">
+          <div class="info-item">
+            <div class="info-item-label">Hora Local del Cliente</div>
+            <div class="info-item-value" id="client-time">Cargando...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-label">Protocolo / Origen</div>
+            <div class="info-item-value" id="client-protocol">Cargando...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-label">Host de Distribución</div>
+            <div class="info-item-value" id="client-host">Cargando...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-label">Estado de Caché / Conexión</div>
+            <div class="info-item-value" id="client-status">Verificando...</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container footer-content">
+        <div class="footer-author">
+          <strong>Arquitectura de Sistemas I</strong> &bull; Tarea HW-04: Primer Deployment
+        </div>
+        <div>
+          Desplegado con <strong>Vite</strong> + <strong>GitHub Actions</strong> + <strong>AWS S3</strong> + <strong>CloudFront</strong>
+        </div>
+      </div>
+    </footer>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
+
