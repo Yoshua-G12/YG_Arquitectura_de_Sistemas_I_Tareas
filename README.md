@@ -81,6 +81,17 @@ npm run build
 npm test
 npm run typecheck
 ```
+## Capturas de funcionamiento
+
+### Frontend
+Muestra los estados de stock calculados mediante @repo/shared.
+
+![Frontend funcionando](docs/capturas/frontend.png)
+
+### Backend
+La API devuelve los estados de stock calculados mediante @repo/shared.
+
+![Backend funcionando](docs/capturas/backend.png)
 
 ## Almacenamiento
 
