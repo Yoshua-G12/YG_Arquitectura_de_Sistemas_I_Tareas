@@ -1,0 +1,21 @@
+{
+  "name": "@repo/web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@repo/shared": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "vite": "^6.3.5",
+    "jsdom": "^26.1.0"
+  }
+}

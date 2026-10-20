@@ -141,3 +141,14 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Turborepo
+.turbo
+
+# Vite build output
+apps/web/dist
+
+# Captures generated locally
+docs/capturas/*.png
+docs/capturas/*.jpg
+docs/capturas/*.jpeg

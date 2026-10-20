@@ -1,129 +1,116 @@
-# API de Productos con Hono
+# Monorepo de productos
 
-API REST sencilla desarrollada en TypeScript utilizando Hono y Pino. Permite consultar, crear, reemplazar, modificar y eliminar productos.
+Proyecto `hw-05` del repositorio [YG_Arquitectura_de_Sistemas_I_Tareas](https://github.com/Yoshua-G12/YG_Arquitectura_de_Sistemas_I_Tareas). Convierte la API de productos existente en un monorepo con Turborepo, una aplicación web y una librería TypeScript compartida.
 
-Los datos se almacenan temporalmente en un arreglo, por lo que no se utiliza una base de datos.
+## Objetivo
 
-## Tecnologías utilizadas
+Administrar productos mediante una API REST con Hono y Pino y una interfaz web responsive en español. Ambas aplicaciones reutilizan tipos, validaciones y la función de estado de existencias desde `@repo/shared`.
 
-- Node.js
-- TypeScript
-- Hono
-- Pino
-- TSX
+## Estructura
+
+| Ruta | Responsabilidad |
+|---|---|
+| `apps/api` | API Hono, CRUD en memoria, logging Pino y pruebas HTTP con `app.request`. |
+| `apps/web` | Frontend Vite con TypeScript vanilla, HTML, CSS, formulario y estados de interfaz. |
+| `packages/shared` | Tipos `Producto`, validaciones y `obtenerEstadoStock()`, con pruebas de límites. |
+| `docs/capturas` | Instrucciones y destino para evidencias visuales reales. |
+| `turbo.json` | Orden, caché, salidas y persistencia de tareas de Turborepo. |
+
+## Workspaces y Turborepo
+
+npm Workspaces reconoce `apps/*` y `packages/*`, instala las dependencias en un único lockfile y enlaza `@repo/shared` como dependencia local real de las dos aplicaciones. Turborepo coordina scripts homónimos entre paquetes, ejecuta `shared` antes de sus consumidores mediante `dependsOn: ["^build"]`, almacena salidas `dist/**` y deja `dev` como tarea persistente sin caché.
+
+La librería usa el patrón de paquete compilado: exporta `dist/index.js` y sus declaraciones. Los scripts raíz construyen la librería automáticamente antes de iniciar una aplicación, por lo que un clon limpio puede ejecutar `npm run dev` sin pasos manuales adicionales.
 
 ## Requisitos
 
-Antes de ejecutar el proyecto es necesario tener instalado:
+Versiones utilizadas durante la verificación:
 
-- Node.js 18 o superior
-- npm
+- Node.js `v24.19.0`
+- npm `11.17.0`
 - Git
 
-## Instalación
+El proyecto declara Node.js `>=20.19.0` y npm `>=10.8.0`.
 
-Clonar el repositorio:
-
-```bash
-git clone https://github.com/Yoshua-G12/api_productos-typescript.git
-```
-
-Entrar en la carpeta:
+## Instalación desde cero
 
 ```bash
-cd api_productos-typescript
-```
-
-Cambiar a la rama de la primera tarea:
-
-```bash
-git switch hw-01
-```
-
-Instalar las dependencias:
-
-```bash
+git clone https://github.com/Yoshua-G12/YG_Arquitectura_de_Sistemas_I_Tareas.git
+cd YG_Arquitectura_de_Sistemas_I_Tareas
+git switch hw-05
 npm install
 ```
 
-## Ejecutar en desarrollo
+## Comandos
+
+| Comando | Acción |
+|---|---|
+| `npm run dev` | Inicia API y frontend en paralelo. |
+| `npm run dev:web` | Prepara shared e inicia solo Vite. |
+| `npm run dev:api` | Prepara shared e inicia solo Hono. |
+| `npm run build` | Compila shared, API y web con Turborepo. |
+| `npm run build:web` | Compila shared y frontend. |
+| `npm run build:api` | Compila shared y API. |
+| `npm test` | Ejecuta todas las pruebas. |
+| `npm run test:web` | Pruebas de validación del formulario. |
+| `npm run test:api` | Pruebas del CRUD y errores HTTP. |
+| `npm run test:shared` | Pruebas de validaciones y stock. |
+| `npm run typecheck` | Comprueba tipos de todos los paquetes. |
+
+## Puertos y API
+
+- Frontend: `http://localhost:5173`
+- API: `http://localhost:3000`
+- `GET /`: información de la API.
+- `GET /productos`: lista productos con `estadoStock`.
+- `GET /productos/:id`: consulta un producto.
+- `POST /productos`: crea `{ "nombre": "Monitor", "precio": 2500, "stock": 5 }`.
+- `PUT /productos/:id`: reemplaza todos los campos.
+- `PATCH /productos/:id`: actualiza campos parciales.
+- `DELETE /productos/:id`: elimina un producto.
+
+La API devuelve `400` para IDs o cuerpos inválidos, incluyendo JSON malformado, `404` para recursos inexistentes, `201` al crear y `204` al eliminar.
+
+## Pruebas y compilación
+
+Las pruebas de `@repo/shared` cubren productos válidos e inválidos y los límites `0`, `1`, `5` y `6` del estado de stock. Las de API prueban consulta, creación, actualización, eliminación y errores. Las del frontend prueban la conversión y validación del formulario mediante funciones comprobables.
 
 ```bash
-npm run dev
+npm install
+npm run build
+npm test
+npm run typecheck
 ```
 
-La API estará disponible en:
+## Almacenamiento
+
+Los datos se guardan únicamente en memoria. Se reinician al detener o reiniciar el servidor de la API; no hay base de datos ni persistencia externa.
+
+## Conventional Commits
+
+Ejemplos válidos para esta rama:
 
 ```text
-http://localhost:3000
+feat: convertir proyecto en monorepo con Turborepo
+test: cubrir validaciones compartidas de productos
+docs: documentar comandos y evidencias de hw-05
 ```
 
-## Compilar el proyecto
+## Evidencias
+
+No se agregaron capturas automáticamente porque este entorno no dispone de una herramienta de captura de navegador. Las instrucciones precisas están en [`docs/capturas/README.md`](docs/capturas/README.md). Las importaciones en `apps/api/src/app.ts` y `apps/web/src/main.ts` demuestran el uso directo de `@repo/shared`.
+
+Cuando se tomen manualmente, las imágenes deberán enlazarse aquí:
+
+- Frontend con estados de stock: `docs/capturas/frontend-stock.png`.
+- Backend con JSON y `estadoStock`: `docs/capturas/backend-json.png`.
+
+## Publicación
+
+Después de revisar los cambios y crear los commits, publica la rama con:
 
 ```bash
-npm run build
+git push -u origin hw-05
 ```
 
-## Ejecutar el proyecto compilado
-
-```bash
-npm start
-```
-
-## Endpoints
-
-| Método | Endpoint | Descripción | Código exitoso |
-|---|---|---|---|
-| GET | `/` | Información principal de la API | 200 |
-| GET | `/productos` | Obtener todos los productos | 200 |
-| GET | `/productos/:id` | Obtener un producto por ID | 200 |
-| POST | `/productos` | Crear un producto | 201 |
-| PUT | `/productos/:id` | Reemplazar completamente un producto | 200 |
-| PATCH | `/productos/:id` | Modificar algunos campos | 200 |
-| DELETE | `/productos/:id` | Eliminar un producto | 204 |
-
-## Ejemplo para POST
-
-```json
-{
-  "nombre": "Monitor gamer",
-  "precio": 2500,
-  "stock": 5
-}
-```
-
-## Ejemplo para PUT
-
-PUT requiere todos los campos del producto:
-
-```json
-{
-  "nombre": "Monitor gamer 27 pulgadas",
-  "precio": 2800,
-  "stock": 8
-}
-```
-
-## Ejemplo para PATCH
-
-PATCH permite modificar solamente algunos campos:
-
-```json
-{
-  "stock": 12
-}
-```
-
-## Códigos de respuesta
-
-| Código | Significado |
-|---|---|
-| 200 | Operación realizada correctamente |
-| 201 | Producto creado correctamente |
-| 204 | Producto eliminado sin contenido en la respuesta |
-| 400 | Datos o ID inválidos |
-| 404 | Producto o ruta no encontrada |
-
-## Persistencia de datos
-
-La API no utiliza una base de datos. Los productos se almacenan en memoria y vuelven a su estado inicial cada vez que se reinicia el servidor.
+Enlace de la rama a entregar: `https://github.com/Yoshua-G12/YG_Arquitectura_de_Sistemas_I_Tareas/tree/hw-05`
